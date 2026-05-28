@@ -43,6 +43,7 @@ Unlike template implementations, the notebook constructs the underlying gradient
 Calculates the Mean Squared Error over an explicit pointer verification step to assess current global fit penalties:
 
 Cost Formula: J(w, b) = (1 / 2m) * Sum( ((w * x + b) - y)^2 )
+
 2. Analytical Gradient Step (gradient)
 
 Calculates simultaneous partial derivative slopes for parameters across loop iterations:
@@ -50,6 +51,7 @@ Calculates simultaneous partial derivative slopes for parameters across loop ite
 Slope Gradient Formula: dj_dw = (1 / m) * Sum( (predicted_y - actual_y) * x )
 
 Intercept Gradient Formula: dj_db = (1 / m) * Sum( predicted_y - actual_y )
+
 3. Iterative Tuning Horizon (gradient_descent)
 
 Updates variables tracking optimization histories across an asynchronous loop paradigm:
