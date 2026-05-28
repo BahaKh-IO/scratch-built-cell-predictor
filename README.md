@@ -1,7 +1,3 @@
-Here is a complete, clean, and professional **README.md** file for your project. You can copy and paste this directly into your GitHub repository or project folder.
-
----
-
 # Fine Needle Aspirate (FNA) Cell Geometry Predictor
 
 A pure, from-scratch Python implementation of a Linear Regression model designed to analyze breast mass tumor cell morphology. Without relying on any machine learning frameworks like `scikit-learn`, this project uncovers structural patterns in oncology data using basic statistical mathematics.
@@ -12,28 +8,21 @@ During a Breast Fine Needle Aspirate (FNA) biopsy, quantitative histopathology t
 
 This model explores **nuclear pleomorphism** (the variation in cell size and shape characteristic of cancer cells) by predicting the upper tail bound size (`area_worst`) based exclusively on the overall population average (`area_mean`).
 
-### Key Mathematical Performance
+## 📌 Performance Metrics Summary
+Following full execution over the model's independent evaluation partition, the system outputs the following validation metrics:
+Mean Squared Error (MSE): 10461.3519
+Root Mean Squared Error (RMSE): 102.2808 (Average tracking error of  102.28 physical units)
+Coefficient of Determination (R^2 Score): 0.9680 (96.80% of testing variance successfully explained)
+Optimization Setup: Batch Gradient Descent (alpha = 0.02, iterations = 3000)
+Validation Strategy: Chronological Holdout Split (N_train = 450, N_test = 119)
 
-* **Coefficient of Determination ($R^2$):** `0.9680` (96.80% of the variance explained)
-* **Mean Squared Error (MSE):** `10461.35`
-* **Root Mean Squared Error (RMSE):** `~102.28` units (Extremely precise relative to the dataset's `4,000+` unit size range)
 
----
-
-## 🔬 Scientific Context: Why It Works
-
-In healthy tissue, cells grow uniformly. In malignant tumors, genetic instability leads to widespread, uncontrolled expansion of the nuclear envelope.
-
-Because tumor populations tend to shift upward *together* as malignancy increases, a strict linear scaling law emerges between the sample mean and its maximum outliers. This model mathematically maps that expansion using the **Ordinary Least Squares (OLS)** method to establish a line of best fit:
-
-$$\text{Predicted Worst Area} = (m \times \text{Average Area}) + c$$
 
 ---
 
 ## 🛠️ Features
 
 * **Zero ML Dependencies:** Built completely from scratch using basic arithmetic arrays. No `scikit-learn`, `PyTorch`, or `TensorFlow`.
-* **OLS Calculation:** Hand-coded formulas for calculating the statistical slope ($m$) and intercept ($c$).
 * **Built-in Verification:** Manual calculations for Mean Squared Error (MSE) and $R^2$ Score to measure model confidence.
 
 ---
@@ -46,6 +35,28 @@ The project requires only standard data handling libraries included in typical P
 pip install pandas numpy
 
 ```
+## 🛠️ Algorithmic Breakdown (From Scratch Implementation)
+
+Unlike template implementations, the notebook constructs the underlying gradient calculation layers sequentially:
+1. Cost Objective Engine (cost)
+
+Calculates the Mean Squared Error over an explicit pointer verification step to assess current global fit penalties:
+
+Cost Formula: J(w, b) = (1 / 2m) * Sum( ((w * x + b) - y)^2 )
+2. Analytical Gradient Step (gradient)
+
+Calculates simultaneous partial derivative slopes for parameters across loop iterations:
+
+Slope Gradient Formula: dj_dw = (1 / m) * Sum( (predicted_y - actual_y) * x )
+
+Intercept Gradient Formula: dj_db = (1 / m) * Sum( predicted_y - actual_y )
+3. Iterative Tuning Horizon (gradient_descent)
+
+Updates variables tracking optimization histories across an asynchronous loop paradigm:
+
+Parameter Step Updates: w = w - (alpha * dj_dw)
+
+b = b - (alpha * dj_db)
 
 ### Dataset Structure
 
@@ -56,12 +67,44 @@ The project utilizes the classic *Breast Cancer Wisconsin (Diagnostic) Dataset* 
 
 ---
 
-## 📈 Understanding the Outputs
+## 📋 Direct Console Output Display
+When you execute this script, the logging pipeline prints the complete structural breakdown below to the console terminal screen:
+Plaintext
 
-### The Formula Interpretation
+Iteration 0, Cost = 543476.9230769231
+Iteration 100, Cost = 23610.339611684347
+Iteration 200, Cost = 15309.58550181518
+Iteration 300, Cost = 14995.738152570414
+Iteration 400, Cost = 14983.621453228678
+...
+Iteration 2900, Cost = 14983.143615175953
 
-The slope ($m$) calculated by the execution dictates that for every **1 square unit increase** in a tumor's average cell size, the worst-case cell pocket expands by roughly **1.55 units**. This showcases that the extreme outliers deviate progressively faster than the average population as cell abnormality accelerates.
+==================================================
+   LINEAR REGRESSION METRICS (FROM GRADIENT DESCENT)   
+==================================================
+Optimized Feature Weight (w) : 544.867912
+Optimized Engine Bias (b)    : 885.856166
+--------------------------------------------------
+TRAINING SET PERFORMANCE (N = 450):
+  -> Mean Squared Error (MSE) : 29966.2872
+  -> R2 Score (Accuracy)      : 0.9038 (90.38%)
+--------------------------------------------------
+TESTING SET PERFORMANCE (N = 119):
+  -> Mean Squared Error (MSE) : 10461.3519
+  -> Root MSE (RMSE)          : 102.2808
+  -> R2 Score (Accuracy)      : 0.9680 (96.80%)
+==================================================
 
-### Evaluating the Error
+## 📈 Parameter Trace & Variable Unscaling Transformation
 
-While an `MSE` hovering around `10,461` looks physically massive, it represents squared units. Taking the square root gives an `RMSE` of `~102.28`. Given that the cell areas in this dataset span a vast biological range from `185` to over `4,250` units, an average error of just `102` highlights an incredibly stable and tight predictive line.
+Because predictions run natively inside a standard-scaled frame (X_scaled), the math calculation acts as:
+
+Predicted_y_worst = w_scaled * ((area_mean - mean_of_X) / std_of_X) + b_scaled
+
+The script includes an elegant algebraic conversion to unpack this directly back into unscaled, physical real-world values for an operating pathologist:
+
+    w_unscaled = w_scaled / std_of_X * b_unscaled = b_scaled - (w_scaled * mean_of_X) / std_of_X Which yields the final real-world physical prediction rule:
+
+    Predicted_area_worst = 1.5519 * (area_mean) - 135.7379
+
+An R2 score of 96.80% validates that knowing the average cell size acts as a nearly perfect structural proxy for calculating worst-case diagnostic outliers without requiring expensive additional imaging tests.
